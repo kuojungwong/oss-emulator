@@ -31,6 +31,7 @@ module OssEmulator
 
         bytes_cur_to_read = (self.options[:bytes_left_to_read] <= Object::STREAM_CHUNK_SIZE) ? self.options[:bytes_left_to_read] : Object::STREAM_CHUNK_SIZE
         self.options[:bytes_left_to_read] -= bytes_cur_to_read
+        self.options[:cur_pos]=self.pos + bytes_cur_to_read
         return super(bytes_cur_to_read)
 
       when 'multipart_whole' 
