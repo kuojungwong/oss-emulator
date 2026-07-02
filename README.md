@@ -75,6 +75,59 @@ UploadPartCopy,AbortMultipartUpload,ListMultipartUpload,ListParts
 
 - 运行。进入 *oss-emulator* 目录, 执行命令 `ruby bin/emulator -r store -p 8080`。
 
+## 启动参数
+
+| 参数 | 缩写 | 类型 | 必填 | 说明 |
+|------|------|------|------|------|
+| `--root` | `-r` | string | 是 | 存储 bucket/object 文件的根目录 |
+| `--port` | `-p` | numeric | 是 | 绑定的端口，默认 80 |
+| `--address` | `-a` | string | 否 | 绑定的地址，默认本机所有 IP |
+| `--hostname` | `-H` | string | 否 | 主机名 |
+| `--quiet` | `-q` | boolean | 否 | 静默模式，默认 true |
+| `--loglevel` | `-L` | string | 否 | 日志级别：fatal、error、warn、info、debug |
+| `--sslcert` | | string | 否 | SSL 证书路径 |
+| `--sslkey` | | string | 否 | SSL 证书密钥路径 |
+| `--auth` | | boolean | 否 | 启用签名认证，默认 false |
+| `--access_key` | | string | 否 | 访问密钥（启用认证时必填） |
+| `--secret_key` | | string | 否 | 密钥（启用认证时必填） |
+| `--config_file` | `-c` | string | 否 | 配置文件路径 |
+
+## 签名认证
+
+*oss-emulator* 支持阿里云 OSS V1 签名认证，默认关闭。
+
+### 方式一：命令行参数启用
+
+```bash
+ruby bin/emulator server -r ./store -p 8080 --auth --access_key myaccesskey --secret_key mysecretkey
+```
+
+### 方式二：配置文件启用
+
+创建 `config.yaml`：
+
+```yaml
+auth: true
+access_key: myaccesskey
+secret_key: mysecretkey
+```
+
+启动时指定配置文件：
+
+```bash
+ruby bin/emulator server -r ./store -p 8080 -c config.yaml
+```
+
+### 方式三：默认关闭认证
+
+直接启动，不启用认证：
+
+```bash
+ruby bin/emulator server -r ./store -p 8080
+```
+
+> **注意：** 启用认证时，必须同时提供 `access_key` 和 `secret_key`，否则启动会失败。
+
 ## 使用示例
 
 ### ossutil

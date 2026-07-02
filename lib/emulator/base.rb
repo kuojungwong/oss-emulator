@@ -64,6 +64,8 @@ module OssEmulator
     INVALID_ARGUMENT       = { error_code: 'InvalidArgument', status_code: 400, message: 'The file size should be less than 5G.' }
     FILE_PART_NO_EXIST     = { error_code: 'FilePartNotExist', status_code: 400, message: 'The file part does not exist.' }
     ACCESS_DENIED          = { error_code: 'AccessDenied', status_code: 403, message: 'The access is forbidden.' }
+    INVALID_ACCESS_KEY_ID  = { error_code: 'InvalidAccessKeyId', status_code: 403, message: 'The access key ID provided does not exist in our records.' }
+    SIGNATURE_DOES_NOT_MATCH = { error_code: 'SignatureDoesNotMatch', status_code: 403, message: 'The request signature we calculated does not match the signature you provided.' }
     NO_SUCH_BUCKET         = { error_code: 'NoSuchBucket', status_code: 404, message: 'The bucket does not exist.' }
     NO_SUCH_KEY            = { error_code: 'NoSuchKey', status_code: 404, message: 'The specified object does not exist.' }
     NOT_FOUND              = { error_code: 'NotFound', status_code: 404, message: 'The file has not been found.' }

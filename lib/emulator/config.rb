@@ -14,6 +14,9 @@ module OssEmulator
 
     @@config_init = false
     @@quiet_mode = true
+    @@enable_auth = false
+    @@access_key = ''
+    @@secret_key = ''
 
     def self.init()
       return if @@config_init
@@ -61,6 +64,30 @@ module OssEmulator
     def self.hostnames()
       return unless @@config_init
       @@hostnames
+    end
+
+    def self.enable_auth=(enable)
+      @@enable_auth = enable
+    end
+
+    def self.enable_auth()
+      @@enable_auth
+    end
+
+    def self.access_key=(key)
+      @@access_key = key
+    end
+
+    def self.access_key()
+      @@access_key
+    end
+
+    def self.secret_key=(key)
+      @@secret_key = key
+    end
+
+    def self.secret_key()
+      @@secret_key
     end
 
   end # Config

@@ -1,4 +1,5 @@
 require 'thor'
+require 'yaml'
 require 'emulator/server'
 require 'emulator/config'
 
@@ -15,12 +16,18 @@ module OssEmulator
     method_option :loglevel, :type => :string, :aliases => '-L', :desc => "Set the log level : fatal、error、warn、info、debug. "
     method_option :sslcert, :type => :string, :desc => "Path to SSL certificate"
     method_option :sslkey, :type => :string, :desc => "Path to SSL certificate key"
+    method_option :auth, :type => :boolean, :desc => "Enable authentication. Defaults to false."
+    method_option :access_key, :type => :string, :desc => "Access key for authentication."
+    method_option :secret_key, :type => :string, :desc => "Secret key for authentication."
+    method_option :config_file, :type => :string, :aliases => '-c', :desc => "Path to configuration file."
 
     def server
       Config.init()
       Config.set_quiet_mode(options[:quiet])
       Config.set_log_level(options[:loglevel].downcase) if options[:loglevel]
-      
+
+      load_config_file()
+
       if options[:root]
         root_dir = File.expand_path(options[:root])
         if root_dir==File.expand_path(Store::STORE_ROOT_DIR) && !File.exist?(root_dir)
@@ -35,12 +42,27 @@ module OssEmulator
       if options[:hostname]
         hostname = options[:hostname]
 
-        # In case the user has put a port on the hostname
         if hostname =~ /:(\d+)/
           hostname = hostname.split(":")[0]
         end
       end
       Config.set_hostname(hostname)
+
+      if options[:auth]
+        Config.enable_auth = true
+      end
+
+      if options[:access_key]
+        Config.access_key = options[:access_key]
+      end
+
+      if options[:secret_key]
+        Config.secret_key = options[:secret_key]
+      end
+
+      if Config.enable_auth && (Config.access_key.empty? || Config.secret_key.empty?)
+        Log.abort("When authentication is enabled, you must provide both access_key and secret_key")
+      end
 
       address = options[:address]
       ssl_cert_path = options[:sslcert]
@@ -50,11 +72,33 @@ module OssEmulator
         Log.abort("If you specify an SSL certificate you must also specify an SSL certificate key")
       end
   
-      # Start Server
       Log.info("Loading OssEmulator on port #{options[:port]} with hostname #{Config.host} . ")
       Log.info("OssEmulator Store root is #{Config.store}, Log level is #{Log.level} . ")
+      Log.info("Authentication is #{Config.enable_auth ? 'enabled' : 'disabled'} . ") if !options[:quiet]
       server = OssEmulator::Server.new(address, options[:port], hostname, ssl_cert_path, ssl_key_path, quiet: !!options[:quiet])
       server.serve
+    end
+
+    def load_config_file
+      return unless options[:config_file]
+
+      config_path = File.expand_path(options[:config_file])
+      Log.abort("Config file does not exist : #{config_path}") unless File.exist?(config_path)
+
+      begin
+        config = YAML.load_file(config_path)
+        if config['auth']
+          Config.enable_auth = config['auth']
+        end
+        if config['access_key']
+          Config.access_key = config['access_key']
+        end
+        if config['secret_key']
+          Config.secret_key = config['secret_key']
+        end
+      rescue => e
+        Log.abort("Failed to load config file : #{e.message}")
+      end
     end
 
     desc "version", "Report the current OSS Emulator version"

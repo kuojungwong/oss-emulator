@@ -10,6 +10,7 @@ require 'emulator/response'
 require 'emulator/bucket'
 require 'emulator/object'
 require 'emulator/multipart'
+require 'emulator/auth'
 
 module OssEmulator
   class Servlet < WEBrick::HTTPServlet::AbstractServlet
@@ -17,7 +18,31 @@ module OssEmulator
       super(server)
     end
 
+    def authenticate(request, response)
+      return true unless Config.enable_auth
+
+      access_key = Auth.extract_access_key(request)
+      unless access_key
+        OssResponse.response_error(response, ErrorCode::ACCESS_DENIED)
+        return false
+      end
+
+      unless access_key == Config.access_key
+        OssResponse.response_error(response, ErrorCode::INVALID_ACCESS_KEY_ID)
+        return false
+      end
+
+      unless Auth.verify(request)
+        OssResponse.response_error(response, ErrorCode::SIGNATURE_DOES_NOT_MATCH)
+        return false
+      end
+
+      true
+    end
+
     def do_HEAD(request, response)
+      return unless authenticate(request, response)
+
       req = OssEmulator::Request.new(request)
       req.parse()
 
@@ -32,6 +57,8 @@ module OssEmulator
     end # do_HEAD
 
     def do_GET(request, response)
+      return unless authenticate(request, response)
+
       req = OssEmulator::Request.new(request)
       req.parse()
 
@@ -74,6 +101,8 @@ module OssEmulator
     end # do_GET
 
     def do_PUT(request, response)
+      return unless authenticate(request, response)
+
       req = OssEmulator::Request.new(request)
       req.parse()
 
@@ -110,6 +139,8 @@ module OssEmulator
     end # do_PUT
 
     def do_POST(request, response)
+      return unless authenticate(request, response)
+
       req = OssEmulator::Request.new(request)
       req.parse()
 
@@ -132,6 +163,8 @@ module OssEmulator
     end # do_POST
 
     def do_DELETE(request, response)
+      return unless authenticate(request, response)
+
       req = OssEmulator::Request.new(request)
       req.parse()
 
